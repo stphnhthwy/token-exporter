@@ -1,0 +1,19 @@
+{
+  "Semantic Colors": [
+    {
+      "Surface": [
+        {
+          "id": "VariableID:4:10",
+          "name": "Primary",
+          "type": "Alias",
+          "valuesByMode": {
+            "4:1": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:4:8"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

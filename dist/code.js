@@ -1,5 +1,5 @@
 "use strict";
-figma.showUI(__html__, { width: 400, height: 200 });
+figma.showUI(__html__, { width: 400, height: 300 });
 /**
  * Converts an RGB color (with r, g, b normalized between 0 and 1) to a hex string.
  */
@@ -149,13 +149,44 @@ function groupVariablesByCollection() {
 }
 figma.ui.onmessage = (msg) => {
     if (msg.type === "export-variables") {
+        const exportMode = msg.exportMode || "single";
         const variablesByCollection = groupVariablesByCollection();
-        const jsonData = JSON.stringify(variablesByCollection, null, 2);
-        figma.ui.postMessage({
-            type: "download",
-            data: jsonData,
-            filename: "figma-variables.json"
-        });
-        figma.notify("Variables processed! Download should start automatically.");
+        if (exportMode === "single") {
+            // Export all collections in a single file
+            const jsonData = JSON.stringify(variablesByCollection, null, 2);
+            figma.ui.postMessage({
+                type: "download",
+                data: jsonData,
+                filename: "figma-variables.json"
+            });
+            figma.notify("Variables exported successfully!");
+        }
+        else {
+            const collections = [];
+            Object.entries(variablesByCollection).forEach(([collectionName, collectionData]) => {
+                const safeFileName = collectionName.replace(/[^a-z0-9]/gi, '-').toLowerCase();
+                collections.push({
+                    name: collectionName,
+                    filename: `${safeFileName}.json`,
+                    data: JSON.stringify({ [collectionName]: collectionData }, null, 2)
+                });
+            });
+            if (exportMode === "multiple") {
+                // Send collections for individual downloads
+                figma.ui.postMessage({
+                    type: "multiple-collections",
+                    collections: collections
+                });
+                figma.notify(`Prepared ${collections.length} collections for individual export`);
+            }
+            else if (exportMode === "zip") {
+                // Send collections for zip creation
+                figma.ui.postMessage({
+                    type: "create-zip",
+                    collections: collections
+                });
+                figma.notify(`Preparing ${collections.length} collections for export as ZIP`);
+            }
+        }
     }
 };
