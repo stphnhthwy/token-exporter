@@ -31,12 +31,9 @@
             {
               "id": "VariableID:4:8",
               "name": "neutral-150",
-              "type": "Alias",
+              "type": "Color",
               "valuesByMode": {
-                "Base": {
-                  "type": "VARIABLE_ALIAS",
-                  "id": "VariableID:3:7"
-                }
+                "Base": "#ffffff"
               }
             }
           ]
@@ -82,9 +79,12 @@
         {
           "id": "VariableID:4:10",
           "name": "Primary",
-          "type": "Color",
+          "type": "Alias",
           "valuesByMode": {
-            "4:1": "#ffffff"
+            "4:1": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:4:8"
+            }
           }
         }
       ]
@@ -135,6 +135,36 @@
           "type": "Color",
           "valuesByMode": {
             "10:2": "#ffffff"
+          }
+        }
+      ]
+    },
+    {
+      "reference-test": [
+        {
+          "id": "VariableID:12:16",
+          "name": "reference-test",
+          "type": "Alias",
+          "valuesByMode": {
+            "10:2": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:4:8"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "semantic-test": [
+        {
+          "id": "VariableID:12:17",
+          "name": "semantic-test",
+          "type": "Alias",
+          "valuesByMode": {
+            "10:2": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:4:10"
+            }
           }
         }
       ]
