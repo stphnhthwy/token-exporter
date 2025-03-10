@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Token Exporter</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+        }
+        button {
+            margin-top: 12px;
+            padding: 8px 16px;
+            background-color: #18A0FB;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #1089d9;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <h3>Export Variables</h3>
+        <button id="exportBtn">Export Variables</button>
+    </div>
+    <div id="output"></div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const exportBtn = document.getElementById('exportBtn');
+            if (exportBtn) {
+                exportBtn.addEventListener('click', () => {
+                    parent.postMessage({ pluginMessage: { type: "export-variables" } }, "*");
+                });
+            }
+
+            window.addEventListener('message', (event) => {
+                const msg = event.data;
+                if (msg.type === "download") {
+                    const blob = new Blob([msg.data], { type: "application/json" });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = msg.filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    URL.revokeObjectURL(url);
+                }
+            });
+        });
+    </script>
+</body>
+</html> 
