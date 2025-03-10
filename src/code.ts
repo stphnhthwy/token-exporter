@@ -22,6 +22,39 @@ function formatValue(value: any): any {
 }
 
 /**
+ * Determines the type of a variable based on its value.
+ */
+function inferVariableType(value: any): string {
+  if (value === null || value === undefined) return "Other";
+  
+  // Check for color
+  if (typeof value === "object" && "r" in value && "g" in value && "b" in value) {
+    return "Color";
+  }
+  
+  // Check for variable alias
+  if (typeof value === "object" && value.type === "VARIABLE_ALIAS") {
+    return "Alias";
+  }
+  
+  // Check for primitive types
+  if (typeof value === "number") {
+    return "Number";
+  }
+  
+  if (typeof value === "string") {
+    return "String";
+  }
+  
+  if (typeof value === "boolean") {
+    return "Boolean";
+  }
+  
+  // Default fallback
+  return "Other";
+}
+
+/**
  * Mapping from Figma mode IDs to human-readable names.
  */
 const modeMapping: Record<string, string> = {
@@ -43,12 +76,77 @@ function formatValuesByMode(valuesByMode: Record<string, any>): Record<string, a
 }
 
 /**
+ * Groups variables by their first path segment.
+ */
+function groupVariablesByFirstSegment(variables: any[]): Record<string, any[]> {
+  const groups: Record<string, any[]> = {};
+  
+  variables.forEach(variable => {
+    if (variable.name.includes('/')) {
+      const segments = variable.name.split('/');
+      const firstSegment = segments[0];
+      const restOfName = segments.slice(1).join('/');
+      
+      if (!groups[firstSegment]) {
+        groups[firstSegment] = [];
+      }
+      
+      groups[firstSegment].push({
+        ...variable,
+        name: restOfName
+      });
+    } else {
+      if (!groups[variable.name]) {
+        groups[variable.name] = [];
+      }
+      
+      // For variables without slashes, we create a group with the variable name
+      // and put the variable itself inside that group
+      groups[variable.name].push({
+        ...variable,
+        name: variable.name
+      });
+    }
+  });
+  
+  return groups;
+}
+
+/**
+ * Recursively processes variables to create the nested structure.
+ */
+function processVariablesRecursively(variables: any[]): any[] {
+  // Group variables by their first path segment
+  const groups = groupVariablesByFirstSegment(variables);
+  
+  // Convert the groups to the desired array format
+  return Object.entries(groups).map(([groupName, groupVariables]) => {
+    // Check if these variables need further processing
+    const needsMoreProcessing = groupVariables.some(v => v.name.includes('/'));
+    
+    if (needsMoreProcessing) {
+      // Process this group recursively
+      return { [groupName]: processVariablesRecursively(groupVariables) };
+    } else {
+      // This is a leaf group, just return the variables
+      return { [groupName]: groupVariables.map(v => ({
+        id: v.id,
+        name: v.name,
+        type: v.type,
+        valuesByMode: v.valuesByMode
+      }))};
+    }
+  });
+}
+
+/**
  * Groups all Figma variables by collection and formats their values.
  */
 function groupVariablesByCollection() {
   const allVariables = figma.variables.getLocalVariables();
   const collections: Record<string, any[]> = {};
 
+  // First, group variables by collection
   allVariables.forEach(variable => {
     const collection = figma.variables.getVariableCollectionById(variable.variableCollectionId);
     const collectionName = collection ? collection.name : "Uncategorized";
@@ -57,13 +155,11 @@ function groupVariablesByCollection() {
       collections[collectionName] = [];
     }
 
-    // Infer variable type
-    let varType = "Other";
+    // Get the first value to determine type
     const valueAnyMode = Object.values(variable.valuesByMode)[0];
-    if (valueAnyMode && typeof valueAnyMode === "object" && "r" in valueAnyMode) {
-      varType = "Color";
-    }
+    const varType = inferVariableType(valueAnyMode);
 
+    // Add the variable to its collection
     collections[collectionName].push({
       id: variable.id,
       name: variable.name,
@@ -72,17 +168,26 @@ function groupVariablesByCollection() {
     });
   });
 
-  return collections;
+  // Then, process each collection to create the nested structure
+  const result: Record<string, any[]> = {};
+  for (const [collectionName, variables] of Object.entries(collections)) {
+    result[collectionName] = processVariablesRecursively(variables);
+  }
+
+  return result;
 }
 
 figma.ui.onmessage = (msg) => {
   if (msg.type === "export-variables") {
     const variablesByCollection = groupVariablesByCollection();
+    const jsonData = JSON.stringify(variablesByCollection, null, 2);
+    
     figma.ui.postMessage({ 
       type: "download", 
-      data: JSON.stringify(variablesByCollection, null, 2),
+      data: jsonData,
       filename: "figma-variables.json"
     });
-    figma.notify("Variables exported successfully!");
+    
+    figma.notify("Variables processed! Download should start automatically.");
   }
 };
