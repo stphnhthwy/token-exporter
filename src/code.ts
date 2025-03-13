@@ -1,234 +1,118 @@
+// Function to format keys
+function formatKey(name: string): string {
+  return name.replace(/[^a-zA-Z0-9]/g, " ") // Remove non-alphanumeric characters
+             .split(" ") // Split by spaces
+             .map((word, index) => index === 0 ? word.toLowerCase() : word.charAt(0).toUpperCase() + word.slice(1))
+             .join(""); // Convert to camelCase
+}
+
+// Function to assign nested objects
+function assignNestedObject(obj: any, path: string[], value: any) {
+  let current = obj;
+  for (let i = 0; i < path.length - 1; i++) {
+    if (!current[path[i]]) {
+      current[path[i]] = {};
+    }
+    current = current[path[i]];
+  }
+  current[path[path.length - 1]] = value;
+}
+
+function rgbaToHex(r: number, g: number, b: number, a: number = 1): string {
+  const toHex = (value: number) => Math.round(value * 255).toString(16).padStart(2, "0");
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}${a < 1 ? toHex(a) : ""}`.toUpperCase();
+}
+
+// Function to find token path by ID
+function findTokenPathById(output: Record<string, any>, targetId: string): string | null {
+  function search(obj: any, path: string[]): string | null {
+    for (let key in obj) {
+      if (typeof obj[key] === "object") {
+        const currentPath = path.concat(key).join(".");
+
+        // Check inside `valuesByMode`
+        if (obj[key].valuesByMode) {
+          for (const mode in obj[key].valuesByMode) {
+            if (
+              obj[key].valuesByMode[mode]?.$type === "VARIABLE_ALIAS" &&
+              obj[key].valuesByMode[mode]?.$id === targetId
+            ) {
+              return currentPath;
+            }
+          }
+        }
+
+        // Check inside `$value`
+        if (obj[key].$value && obj[key].$value.$type === "VARIABLE_ALIAS" && obj[key].$value.$id === targetId) {
+          return currentPath;
+        }
+
+        // Recursively search deeper
+        let found = search(obj[key], path.concat(key));
+        if (found) return found;
+      }
+    }
+    return null;
+  }
+  return search(output, []);
+}
+
 figma.showUI(__html__, { width: 400, height: 300 });
 
-/**
- * Converts an RGB color (with r, g, b normalized between 0 and 1) to a hex string.
- */
-function rgbToHex({ r, g, b }: { r: number; g: number; b: number }): string {
-  const toHex = (n: number) => {
-    const hex = Math.round(n * 255).toString(16);
-    return hex.length === 1 ? '0' + hex : hex;
-  };
-  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
-}
+// Export variables to JSON
+async function exportToJSON() {
+  const collections = await figma.variables.getLocalVariableCollectionsAsync();
+  const allVariables = await figma.variables.getLocalVariablesAsync();
+  let output: Record<string, any> = {};
 
-/**
- * Checks if a value is a color (has r, g, b properties) and converts it to hex.
- */
-function formatValue(value: any): any {
-  if (value && typeof value === "object" && "r" in value && "g" in value && "b" in value) {
-    return rgbToHex(value);
-  }
-  return value;
-}
+  for (const collection of collections) {
+    let collectionName = formatKey(collection.name);
+    output[collectionName] = {};
 
-/**
- * Determines the type of a variable based on its value.
- */
-function inferVariableType(value: any): string {
-  if (value === null || value === undefined) return "Other";
-  
-  // Check for color
-  if (typeof value === "object" && "r" in value && "g" in value && "b" in value) {
-    return "Color";
-  }
-  
-  // Check for variable alias
-  if (typeof value === "object" && value.type === "VARIABLE_ALIAS") {
-    return "Alias";
-  }
-  
-  // Check for primitive types
-  if (typeof value === "number") {
-    return "Number";
-  }
-  
-  if (typeof value === "string") {
-    return "String";
-  }
-  
-  if (typeof value === "boolean") {
-    return "Boolean";
-  }
-  
-  // Default fallback
-  return "Other";
-}
+    const collectionVariables = allVariables.filter(v => v.variableCollectionId === collection.id);
 
-/**
- * Mapping from Figma mode IDs to human-readable names.
- */
-const modeMapping: Record<string, string> = {
-  "1:0": "Base",
-  "2.0": "Light"
-};
+    for (const variable of collectionVariables) {
+      let pathParts = variable.name.split("/").map(part => formatKey(part));
 
-/**
- * Processes the valuesByMode object: converts each mode's value (if a color) to hex
- * and replaces the key with a mapped mode name if available.
- */
-function formatValuesByMode(valuesByMode: Record<string, any>): Record<string, any> {
-  const formatted: Record<string, any> = {};
-  for (const mode in valuesByMode) {
-    const mappedMode = modeMapping[mode] || mode;
-    formatted[mappedMode] = formatValue(valuesByMode[mode]);
-  }
-  return formatted;
-}
-
-/**
- * Groups variables by their first path segment.
- */
-function groupVariablesByFirstSegment(variables: any[]): Record<string, any[]> {
-  const groups: Record<string, any[]> = {};
-  
-  variables.forEach(variable => {
-    if (variable.name.includes('/')) {
-      const segments = variable.name.split('/');
-      const firstSegment = segments[0];
-      const restOfName = segments.slice(1).join('/');
+      let valuesByMode: Record<string, any> = {};
+      for (const mode of collection.modes) {
+        const modeName = formatKey(mode.name || mode.modeId);
+        let modeValue = variable.valuesByMode[mode.modeId];
       
-      if (!groups[firstSegment]) {
-        groups[firstSegment] = [];
+        if (modeValue !== undefined) {
+          if (typeof modeValue === "object" && "id" in modeValue) {
+            // Handle variable references according to the spec
+            const referencedVar = allVariables.find(v => v.id === modeValue.id);
+            if (referencedVar) {
+              valuesByMode[modeName] = {
+                "$type": "color",
+                "$value": `{${referencedVar.name.split("/").join(".")}}`
+              };
+            }
+          } else if (typeof modeValue === "object" && "r" in modeValue && "g" in modeValue && "b" in modeValue) {
+            valuesByMode[modeName] = {
+              "$type": "color",
+              "$value": rgbaToHex(modeValue.r, modeValue.g, modeValue.b, "a" in modeValue ? modeValue.a : 1)
+            };
+          } else {
+            valuesByMode[modeName] = modeValue;
+          }
+        }
       }
-      
-      groups[firstSegment].push({
-        ...variable,
-        name: restOfName
-      });
-    } else {
-      if (!groups[variable.name]) {
-        groups[variable.name] = [];
-      }
-      
-      // For variables without slashes, we create a group with the variable name
-      // and put the variable itself inside that group
-      groups[variable.name].push({
-        ...variable,
-        name: variable.name
+
+      assignNestedObject(output[collectionName], pathParts, {
+        "$type": variable.resolvedType.toLowerCase(),
+        "$value": valuesByMode
       });
     }
-  });
-  
-  return groups;
-}
-
-/**
- * Recursively processes variables to create the nested structure.
- */
-function processVariablesRecursively(variables: any[]): any[] {
-  // Group variables by their first path segment
-  const groups = groupVariablesByFirstSegment(variables);
-  
-  // Convert the groups to the desired array format
-  return Object.entries(groups).map(([groupName, groupVariables]) => {
-    // Check if these variables need further processing
-    const needsMoreProcessing = groupVariables.some(v => v.name.includes('/'));
-    
-    if (needsMoreProcessing) {
-      // Process this group recursively
-      return { [groupName]: processVariablesRecursively(groupVariables) };
-    } else {
-      // This is a leaf group, just return the variables
-      return { [groupName]: groupVariables.map(v => ({
-        id: v.id,
-        name: v.name,
-        type: v.type,
-        valuesByMode: v.valuesByMode
-      }))};
-    }
-  });
-}
-
-/**
- * Groups all Figma variables by collection and formats their values.
- */
-function groupVariablesByCollection() {
-  const allVariables = figma.variables.getLocalVariables();
-  const collections: Record<string, any[]> = {};
-
-  // First, group variables by collection
-  allVariables.forEach(variable => {
-    const collection = figma.variables.getVariableCollectionById(variable.variableCollectionId);
-    const collectionName = collection ? collection.name : "Uncategorized";
-    
-    if (!collections[collectionName]) {
-      collections[collectionName] = [];
-    }
-
-    // Get the first value to determine type
-    const valueAnyMode = Object.values(variable.valuesByMode)[0];
-    const varType = inferVariableType(valueAnyMode);
-
-    // Add the variable to its collection
-    collections[collectionName].push({
-      id: variable.id,
-      name: variable.name,
-      type: varType,
-      valuesByMode: formatValuesByMode(variable.valuesByMode)
-    });
-  });
-
-  // Then, process each collection to create the nested structure
-  const result: Record<string, any[]> = {};
-  for (const [collectionName, variables] of Object.entries(collections)) {
-    result[collectionName] = processVariablesRecursively(variables);
   }
 
-  return result;
+  figma.ui.postMessage({ type: "EXPORT_RESULT", data: JSON.stringify(output, null, 2) });
 }
 
+// Handle messages from the UI
 figma.ui.onmessage = (msg) => {
-  if (msg.type === "export-variables") {
-    const exportMode = msg.exportMode || "single";
-    const variablesByCollection = groupVariablesByCollection();
-    
-    if (exportMode === "single") {
-      // Export all collections in a single file
-      const jsonData = JSON.stringify(variablesByCollection, null, 2);
-      
-      figma.ui.postMessage({ 
-        type: "download", 
-        data: jsonData,
-        filename: "figma-variables.json"
-      });
-      
-      figma.notify("Variables exported successfully!");
-    } else {
-      // For multiple files, prepare the data for each collection
-      interface CollectionExport {
-        name: string;
-        filename: string;
-        data: string;
-      }
-      
-      const collections: CollectionExport[] = [];
-      
-      Object.entries(variablesByCollection).forEach(([collectionName, collectionData]) => {
-        const safeFileName = collectionName.replace(/[^a-z0-9]/gi, '-').toLowerCase();
-        collections.push({
-          name: collectionName,
-          filename: `${safeFileName}.json`,
-          data: JSON.stringify({ [collectionName]: collectionData }, null, 2)
-        });
-      });
-      
-      if (exportMode === "multiple") {
-        // Send collections for individual downloads
-        figma.ui.postMessage({
-          type: "multiple-collections",
-          collections: collections
-        });
-        
-        figma.notify(`Prepared ${collections.length} collections for individual export`);
-      } else if (exportMode === "zip") {
-        // Send collections for zip creation
-        figma.ui.postMessage({
-          type: "create-zip",
-          collections: collections
-        });
-        
-        figma.notify(`Preparing ${collections.length} collections for export as ZIP`);
-      }
-    }
+  if (msg.type === "export") {
+    exportToJSON();
   }
 };
