@@ -1,0 +1,267 @@
+{
+  "referenceColors": {
+    "neutral": {
+      "test1": {
+        "neutral50": {
+          "$type": "color",
+          "$value": {
+            "referenceMode": {
+              "$type": "color",
+              "$value": "#C3C3C3"
+            }
+          }
+        }
+      },
+      "test2": {
+        "neutral100": {
+          "$type": "color",
+          "$value": {
+            "referenceMode": {
+              "$type": "color",
+              "$value": "#FFFFFF"
+            }
+          }
+        }
+      },
+      "neutral150": {
+        "$type": "color",
+        "$value": {
+          "referenceMode": {
+            "$type": "color",
+            "$value": "#FFFFFF"
+          }
+        }
+      }
+    },
+    "ocean": {
+      "ocean50": {
+        "$type": "color",
+        "$value": {
+          "referenceMode": {
+            "$type": "color",
+            "$value": "#FFFFFF"
+          }
+        }
+      },
+      "ocean100": {
+        "$type": "color",
+        "$value": {
+          "referenceMode": {
+            "$type": "color",
+            "$value": "#FFFFFF"
+          }
+        }
+      }
+    },
+    "testUncategorized": {
+      "$type": "color",
+      "$value": {
+        "referenceMode": {
+          "$type": "color",
+          "$value": "#FFFFFF"
+        }
+      }
+    }
+  },
+  "semanticColors": {
+    "surface": {
+      "primary": {
+        "$type": "color",
+        "$value": {
+          "semanticMode": {
+            "$type": "color",
+            "$value": "{neutral.neutral-150}"
+          }
+        }
+      }
+    }
+  },
+  "dataTypes": {
+    "numberTest": {
+      "$type": "float",
+      "$value": {
+        "dataTypeMode": 12
+      }
+    },
+    "stringTest": {
+      "$type": "string",
+      "$value": {
+        "dataTypeMode": "Hello world"
+      }
+    },
+    "boolTest": {
+      "$type": "boolean",
+      "$value": {
+        "dataTypeMode": false
+      }
+    },
+    "colorTest": {
+      "$type": "color",
+      "$value": {
+        "dataTypeMode": {
+          "$type": "color",
+          "$value": "#FFFFFF"
+        }
+      }
+    },
+    "referenceTest": {
+      "$type": "color",
+      "$value": {
+        "dataTypeMode": {
+          "$type": "color",
+          "$value": "{neutral.neutral-150}"
+        }
+      }
+    },
+    "semanticTest": {
+      "$type": "color",
+      "$value": {
+        "dataTypeMode": {
+          "$type": "color",
+          "$value": "{Surface.Primary}"
+        }
+      }
+    }
+  },
+  "components": {
+    "avatar": {
+      "honey": {
+        "foreground": {
+          "$type": "color",
+          "$value": {
+            "light": {
+              "$type": "color",
+              "$value": "#D43434"
+            },
+            "dark": {
+              "$type": "color",
+              "$value": "#D43434"
+            }
+          }
+        },
+        "background": {
+          "$type": "color",
+          "$value": {
+            "light": {
+              "$type": "color",
+              "$value": "#681B1B"
+            },
+            "dark": {
+              "$type": "color",
+              "$value": "#681B1B"
+            }
+          }
+        }
+      }
+    }
+  },
+  "allDataTypes": {
+    "reference": {
+      "red10": {
+        "$type": "color",
+        "$value": {
+          "light": {
+            "$type": "color",
+            "$value": "#DE1B1B"
+          },
+          "dark": {
+            "$type": "color",
+            "$value": "#DE1B1B"
+          }
+        }
+      },
+      "red20": {
+        "$type": "color",
+        "$value": {
+          "light": {
+            "$type": "color",
+            "$value": "#B70D0D"
+          },
+          "dark": {
+            "$type": "color",
+            "$value": "#B70D0D"
+          }
+        }
+      }
+    },
+    "semantic": {
+      "error": {
+        "$type": "color",
+        "$value": {
+          "light": {
+            "$type": "color",
+            "$value": "{reference.red10}"
+          },
+          "dark": {
+            "$type": "color",
+            "$value": "{reference.red10}"
+          }
+        }
+      }
+    },
+    "types": {
+      "number": {
+        "$type": "float",
+        "$value": {
+          "light": 10,
+          "dark": 10
+        }
+      },
+      "string": {
+        "$type": "string",
+        "$value": {
+          "light": "error message",
+          "dark": "error message"
+        }
+      },
+      "boolean": {
+        "$type": "boolean",
+        "$value": {
+          "light": false,
+          "dark": false
+        }
+      }
+    },
+    "testReferenceTypes": {
+      "numberReference": {
+        "$type": "float",
+        "$value": {
+          "light": {
+            "$type": "color",
+            "$value": "{types.number}"
+          },
+          "dark": {
+            "$type": "color",
+            "$value": "{types.number}"
+          }
+        }
+      },
+      "stringReference": {
+        "$type": "string",
+        "$value": {
+          "light": {
+            "$type": "color",
+            "$value": "{types.string}"
+          },
+          "dark": {
+            "$type": "color",
+            "$value": "{types.string}"
+          }
+        }
+      },
+      "booleanReference": {
+        "$type": "boolean",
+        "$value": {
+          "light": {
+            "$type": "color",
+            "$value": "{types.boolean}"
+          },
+          "dark": {
+            "$type": "color",
+            "$value": "{types.boolean}"
+          }
+        }
+      }
+    }
+  }
+}
