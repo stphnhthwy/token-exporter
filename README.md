@@ -14,7 +14,7 @@ To use this plugin, ensure that the `manifest.json` file is included in the `dis
 
 ## Results
 
-- The exported JSON is saved inside the `variables` folder in this repository.
+- The exported JSON is saved inside the `tokens` folder in this repository.
 - The JSON structure follows the Design Token Specification to ensure compatibility with multiple platforms.
 
 ## What's Next
