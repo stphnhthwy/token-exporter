@@ -1,0 +1,93 @@
+{
+  "neutral": {
+    "test1": {
+      "neutral50": {
+        "$type": "color",
+        "$value": {
+          "values": {
+            "$type": "color",
+            "$value": "#C3C3C3"
+          }
+        }
+      }
+    },
+    "test2": {
+      "neutral100": {
+        "$type": "color",
+        "$value": {
+          "values": {
+            "$type": "color",
+            "$value": "#FFFFFF"
+          }
+        }
+      }
+    },
+    "neutral150": {
+      "$type": "color",
+      "$value": {
+        "values": {
+          "$type": "color",
+          "$value": "#FFFFFF"
+        }
+      }
+    }
+  },
+  "ocean": {
+    "ocean50": {
+      "$type": "color",
+      "$value": {
+        "values": {
+          "$type": "color",
+          "$value": "#FFFFFF"
+        }
+      }
+    },
+    "ocean100": {
+      "$type": "color",
+      "$value": {
+        "values": {
+          "$type": "color",
+          "$value": "#FFFFFF"
+        }
+      }
+    }
+  },
+  "testUncategorized": {
+    "$type": "color",
+    "$value": {
+      "values": {
+        "$type": "color",
+        "$value": "#FFFFFF"
+      }
+    }
+  },
+  "allTypes": {
+    "numbertest": {
+      "$type": "float",
+      "$value": {
+        "values": 10
+      }
+    },
+    "stringtest": {
+      "$type": "string",
+      "$value": {
+        "values": "STRING"
+      }
+    },
+    "booleantest": {
+      "$type": "boolean",
+      "$value": {
+        "values": false
+      }
+    },
+    "colortest": {
+      "$type": "color",
+      "$value": {
+        "values": {
+          "$type": "color",
+          "$value": "#FFFFFF"
+        }
+      }
+    }
+  }
+}

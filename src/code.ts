@@ -57,9 +57,11 @@ function findTokenPathById(output: Record<string, any>, targetId: string): strin
   return search(output, []);
 }
 
-figma.showUI(__html__, { width: 400, height: 300 });
+figma.showUI(__html__, { width: 800, height: 600 });
 
-// Export variables to JSON
+// Move fullJsonExport outside the function to make it accessible
+let fullJsonExport: Record<string, any> = {};
+
 async function exportToJSON() {
   const collections = await figma.variables.getLocalVariableCollectionsAsync();
   const allVariables = await figma.variables.getLocalVariablesAsync();
@@ -84,9 +86,11 @@ async function exportToJSON() {
             // Handle variable references according to the spec
             const referencedVar = allVariables.find(v => v.id === modeValue.id);
             if (referencedVar) {
+              const refCollection = collections.find(c => c.id === referencedVar.variableCollectionId);
+              const refCollectionName = refCollection ? formatKey(refCollection.name) : formatKey(referencedVar.variableCollectionId);
               valuesByMode[modeName] = {
                 "$type": "color",
-                "$value": `{${referencedVar.name.split("/").join(".")}}`
+                "$value": `{${refCollectionName}.${referencedVar.name.split("/").map(formatKey).join(".")}}`
               };
             }
           } else if (typeof modeValue === "object" && "r" in modeValue && "g" in modeValue && "b" in modeValue) {
@@ -107,12 +111,33 @@ async function exportToJSON() {
     }
   }
 
-  figma.ui.postMessage({ type: "EXPORT_RESULT", data: JSON.stringify(output, null, 2) });
+  // Store the processed data
+  fullJsonExport = output;
 }
 
-// Handle messages from the UI
-figma.ui.onmessage = (msg) => {
+// Single consolidated message handler
+figma.ui.onmessage = async (msg) => {
+  console.log('Plugin received message:', msg); // Debug log
+  
   if (msg.type === "export") {
-    exportToJSON();
+    await exportToJSON();
+    console.log('Sending JSON data:', fullJsonExport); // Debug log
+    figma.ui.postMessage({ 
+      type: "jsonData", 
+      json: fullJsonExport 
+    });
+  } 
+  else if (msg.type === "loadJson") {
+    let jsonToSend;
+    if (msg.collection === "all") {
+      jsonToSend = fullJsonExport;
+    } else {
+      jsonToSend = fullJsonExport[msg.collection] || {};
+    }
+    console.log('Sending collection data:', jsonToSend); // Debug log
+    figma.ui.postMessage({ 
+      type: "jsonData", 
+      json: jsonToSend 
+    });
   }
 };

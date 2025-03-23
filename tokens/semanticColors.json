@@ -1,0 +1,30 @@
+{
+  "surface": {
+    "primary": {
+      "$type": "color",
+      "$value": {
+        "light": {
+          "$type": "color",
+          "$value": "{referenceColors.neutral.neutral150}"
+        },
+        "dark": {
+          "$type": "color",
+          "$value": "{referenceColors.neutral.neutral150}"
+        }
+      }
+    }
+  },
+  "testanotherref": {
+    "$type": "color",
+    "$value": {
+      "light": {
+        "$type": "color",
+        "$value": "{components.avatar.honey.foreground}"
+      },
+      "dark": {
+        "$type": "color",
+        "$value": "{referenceColors.ocean.ocean100}"
+      }
+    }
+  }
+}

@@ -1,5 +1,5 @@
 {
-    "name": "Token Exporter",
+    "name": "Dot System",
     "id": "token-exporter",
     "api": "1.0.0",
     "main": "dist/code.js",
