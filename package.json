@@ -1,11 +1,12 @@
 {
-  "name": "token-exporter",
+  "name": "dot-system",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
     "build:ts": "tsc",
     "build:copy": "node build.js",
     "build": "npm run build:ts && npm run build:copy",
+    "watch": "npm run build -- --watch",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

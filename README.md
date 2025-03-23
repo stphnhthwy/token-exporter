@@ -1,6 +1,6 @@
 # Figma Token Exporter
 
-This project is still in development and is built around Figma’s API, specifically for exporting Variable Tokens. It follows the [Design Token Specification](https://tr.designtokens.org/format/#design-token).
+This project is still in development and is built around Figma's API, specifically for exporting Variable Tokens. It follows the [Design Token Specification](https://tr.designtokens.org/format/#design-token).
 
 ## How to Use This Figma Plugin
 
@@ -14,7 +14,7 @@ To use this plugin, ensure that the `manifest.json` file is included in the `dis
 
 ## Results
 
-- The exported JSON is saved inside the `variables` folder in this repository.
+- The exported JSON is saved inside the `tokens` folder in this repository.
 - The JSON structure follows the Design Token Specification to ensure compatibility with multiple platforms.
 
 ## What's Next
